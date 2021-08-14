@@ -1,8 +1,9 @@
-import logging
+import nltk
+from nltk.util import ngrams as create_ngrams
 
 ALPHABET = [chr(letter) for letter in range(ord('a'), ord('z') + 1)]
 ADDITIONAL_ALLOWED_CHARS = [
-    "_", "\'", " "
+    " ", "\'", "_"
 ]
 ALLOWED_CHARS = ALPHABET + ADDITIONAL_ALLOWED_CHARS
 
@@ -22,6 +23,10 @@ class MarkovChain:
         for state in self.get_state_chain(state_identifier):
             state.add_occurrence()
 
+    def add_chances(self, state_identifiers):
+        for state_identifier in state_identifiers:
+            self.add_chance(state_identifier)
+
     def get_state(self, state_identifier):
         print(self.get_state_chain(state_identifier)[-1])
         return self.get_state_chain(state_identifier)[-1]
@@ -37,9 +42,18 @@ class MarkovChain:
                 break
         return states
 
-    def __str__(self):
-        return str(self.matrix)
+    def train(self, data):
+        data = f"__{data.lower()}_"
+        for character in data:
+            if character not in ALLOWED_CHARS:
+                return False
+        self.add_chances(["".join(ngram) for ngram in create_ngrams(data, self.n_gram_size)])
 
+    def __str__(self):
+        return "--------------------------------------------------------\n" \
+               f"N-Gram Size: {self.n_gram_size}\n" \
+               f"Total N-Grams Stored: {self.matrix.occurrences}\n" \
+               "--------------------------------------------------------"
 
 class MarkovState:
     def __init__(self, state_identifier, occurrences=0):

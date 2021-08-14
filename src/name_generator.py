@@ -11,67 +11,58 @@ def menu(options, actions, arg=None):
                 print(f"  {str(i + 1)}. {options[i]}")
             should_print_options = False
         choice = input("Choice: ").strip()
+        action_preformed = False
         for i in range(num_options):
             if choice == str(i + 1):
-                if arg is None:
-                    actions[i]()
+                action_preformed = True
+                if len(actions) > i:
+                    if arg is None:
+                        actions[i]()
+                    else:
+                        actions[i](arg)
                 else:
-                    actions[i](arg)
+                    should_exit = True
                 should_print_options = True
+        if not action_preformed:
+            print("Please Choose A Valid ", end='')
 
 
 def main_menu():
     print("Markov Chain Fantasy Name Generator")
-    should_exit = False
-    should_print_options = True
-    while not should_exit:
-        if should_print_options:
-            print("  1. Create New Markov Chain")
-            print("  2. Load Existing Markov Chain From File")
-            print("  3. Quit")
-            should_print_options = False
-        choice = input("Choice: ")
-        if choice.strip()[0:1] == "1":
-            chain_menu(new_chain())
-            should_print_options = True
-        elif choice.strip()[0:1] == "2":
-            chain_menu(load_chain())
-            should_print_options = True
-        elif choice.strip()[0:1] == "3":
-            should_exit = True
-        else:
-            print("Please Choose A Valid ", end='')
+    menu(["Create New Markov Chain", "Load Existing Markov Chain From File", "Quit"],
+         [new_chain, load_chain])
 
 
 def chain_menu(chain):
     print("Markov Chain Menu")
-    should_exit = False
-    should_print_options = True
-    while not should_exit:
-        if should_print_options:
-            print("  1. Train")
-            print("  2. Generate")
-            print("  3. Back")
-            should_print_options = False
-        choice = input("Choice: ")
-        if choice.strip()[0:1] == "1":
-            train(chain)
-            should_print_options = True
-        elif choice.strip()[0:1] == "2":
-            generate(chain)
-            should_print_options = True
-        elif choice.strip()[0:1] == "3":
-            should_exit = True
-        else:
-            print("Please Choose A Valid ", end='')
+    menu(["Train", "Generate", "Inspect", "Print", "Save", "Back"],
+         [train_chain, generate_chain, inspect_chain, print_chain, save_chain],
+         chain)
 
 
-def train(chain):
+def train_chain(chain):
     print("Markov Chain Training Menu")
+    print("Enter Training Data:")
+    while chain.train(input()):
+        continue
+    print("Training Finished")
 
 
-def generate(chain):
+def generate_chain(chain):
     print("Markov Chain Generation Menu")
+
+
+def inspect_chain(chain):
+    print("Markov Chain Inspection Menu")
+    print(", ".join([state.get_info() for state in chain.get_state_chain(input(" State Chain To Inspect: "))[1:]]))
+
+
+def print_chain(chain):
+    print(chain)
+
+
+def save_chain(chain):
+    pass
 
 
 def new_chain():

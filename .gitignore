@@ -1,0 +1,12 @@
+# Package Files #
+*.zip
+
+# Python #
+__pycache__/
+*.pyc
+venv/*
+.idea/*
+database/*
+saves/*
+export/*
+theme/shapes/dragon/loading-gif/*

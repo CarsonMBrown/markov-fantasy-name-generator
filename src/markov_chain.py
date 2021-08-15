@@ -1,3 +1,5 @@
+import random
+
 import nltk
 from nltk.util import ngrams as create_ngrams
 
@@ -11,6 +13,8 @@ ALLOWED_CHARS = ALPHABET + ADDITIONAL_ALLOWED_CHARS
 class MarkovChain:
     def __init__(self, n):
         self.n_gram_size = n
+        self.prefix = '_' * (self.n_gram_size - 1)
+        self.suffix = '_'
         self.matrix = MarkovState("ROOT")
         for character in ALLOWED_CHARS:
             self.matrix.add_child(character)
@@ -27,8 +31,24 @@ class MarkovChain:
         for state_identifier in state_identifiers:
             self.add_chance(state_identifier)
 
+    def clean_generated_text(self, text):
+        text = text.replace(self.suffix, "")
+        return text[0].capitalize() + text[1:]
+
+    def generate(self, char_limit=20):
+        generated_text = self.prefix
+        while len(generated_text) - len(self.prefix) < char_limit:
+            generated_text += self.get_next_char(generated_text[-self.n_gram_size + 1:])
+            if generated_text.endswith(self.suffix):
+                break
+        return self.clean_generated_text(generated_text)
+
+    def get_next_char(self, previous):
+        state = self.get_state(previous)
+        choice = random.choices(state.get_choices(), weights=state.get_weights())[0]
+        return choice
+
     def get_state(self, state_identifier):
-        print(self.get_state_chain(state_identifier)[-1])
         return self.get_state_chain(state_identifier)[-1]
 
     def get_state_chain(self, state_identifier):
@@ -43,17 +63,23 @@ class MarkovChain:
         return states
 
     def train(self, data):
-        data = f"__{data.lower()}_"
+        if not data:
+            return False
+        data = f"{self.prefix}{data.lower()}{self.suffix}"
         for character in data:
             if character not in ALLOWED_CHARS:
                 return False
         self.add_chances(["".join(ngram) for ngram in create_ngrams(data, self.n_gram_size)])
+        return True
 
     def __str__(self):
+        br = "\n "
         return "--------------------------------------------------------\n" \
                f"N-Gram Size: {self.n_gram_size}\n" \
                f"Total N-Grams Stored: {self.matrix.occurrences}\n" \
+               f" {br.join(self.matrix.get_non_empty_leaf_info())}\n" \
                "--------------------------------------------------------"
+
 
 class MarkovState:
     def __init__(self, state_identifier, occurrences=0):
@@ -67,6 +93,9 @@ class MarkovState:
     def add_occurrence(self):
         self.occurrences += 1
 
+    def get_choices(self):
+        return [child.state_identifier for child in self.children]
+
     def get_leaves(self):
         leaves = []
         for child in self.children:
@@ -76,8 +105,14 @@ class MarkovState:
                 leaves += child.get_leaves()
         return leaves
 
-    def is_leaf(self):
-        return self.children == []
+    def get_non_empty_leaf_info(self, previous_states=""):
+        leaves = []
+        for child in self.children:
+            if child.is_leaf() and child.occurrences > 0:
+                leaves.append(f"{previous_states + child.state_identifier}, {child.occurrences}")
+            else:
+                leaves += child.get_non_empty_leaf_info(previous_states + child.state_identifier)
+        return leaves
 
     def get_info(self):
         return f"({self.state_identifier}, {self.occurrences})"
@@ -87,6 +122,12 @@ class MarkovState:
             if child == state_identifier:
                 return child
         return False
+
+    def get_weights(self):
+        return [child.occurrences for child in self.children]
+
+    def is_leaf(self):
+        return self.children == []
 
     def __eq__(self, other):
         if isinstance(other, str):

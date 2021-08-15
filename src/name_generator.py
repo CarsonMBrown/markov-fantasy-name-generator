@@ -1,55 +1,55 @@
 from markov_chain import MarkovChain
-
-
-def menu(options, actions, arg=None):
-    should_exit = False
-    should_print_options = True
-    num_options = len(options)
-    while not should_exit:
-        if should_print_options:
-            for i in range(num_options):
-                print(f"  {str(i + 1)}. {options[i]}")
-            should_print_options = False
-        choice = input("Choice: ").strip()
-        action_preformed = False
-        for i in range(num_options):
-            if choice == str(i + 1):
-                action_preformed = True
-                if len(actions) > i:
-                    if arg is None:
-                        actions[i]()
-                    else:
-                        actions[i](arg)
-                else:
-                    should_exit = True
-                should_print_options = True
-        if not action_preformed:
-            print("Please Choose A Valid ", end='')
+from data_cleaner import main as cleaner_menu
+from utils import menu, read_file, load_file
 
 
 def main_menu():
-    print("Markov Chain Fantasy Name Generator")
-    menu(["Create New Markov Chain", "Load Existing Markov Chain From File", "Quit"],
-         [new_chain, load_chain])
+    menu("Markov Chain Fantasy Name Generator",
+         ["Create New Markov Chain", "Load Existing Markov Chain From File", "Clean File", "Quit"],
+         [new_chain, load_chain, cleaner_menu])
 
 
 def chain_menu(chain):
-    print("Markov Chain Menu")
-    menu(["Train", "Generate", "Inspect", "Print", "Save", "Back"],
+    menu("What Do You Want To Do With The Markov Chain?",
+         ["Train", "Test Generate", "Inspect", "Print", "Save", "Back"],
          [train_chain, generate_chain, inspect_chain, print_chain, save_chain],
          chain)
 
 
 def train_chain(chain):
-    print("Markov Chain Training Menu")
+    menu("How Do You Want To Train The Markov Chain?",
+         ["File", "Console", "Back"],
+         [train_chain_file, train_chain_console],
+         chain)
+
+
+def train_chain_file(chain):
+    for line in read_file():
+        clean_line = line.strip()
+        print(f"  {clean_line}: {chain.train(clean_line)}")
+    print("  Training Finished")
+
+
+def train_chain_console(chain):
     print("Enter Training Data:")
-    while chain.train(input()):
+    while chain.train(input("  ")):
         continue
-    print("Training Finished")
+    print("  Training Finished")
 
 
 def generate_chain(chain):
-    print("Markov Chain Generation Menu")
+    print("Generating...")
+    print("--------------------------------------------------------")
+    for i in range(10):
+        print(chain.generate())
+    print("--------------------------------------------------------")
+
+
+# def generate_dump_chain(chain):
+#     f = load_file()
+#     print("Generating...")
+#     for i in range(100):
+#         f.write(chain.generate() + "\n")
 
 
 def inspect_chain(chain):

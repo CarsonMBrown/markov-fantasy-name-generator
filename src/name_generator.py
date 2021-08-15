@@ -1,6 +1,8 @@
+import json
+
 from markov_chain import MarkovChain
 from data_cleaner import main as cleaner_menu
-from utils import menu, read_file, load_file
+from utils import menu, read_file, print_line, TAB, INPUT_FOLDER, SAVE_FOLDER
 
 
 def main_menu():
@@ -20,41 +22,36 @@ def train_chain(chain):
     menu("How Do You Want To Train The Markov Chain?",
          ["File", "Console", "Back"],
          [train_chain_file, train_chain_console],
-         chain)
+         chain,
+         True)
 
 
 def train_chain_file(chain):
-    for line in read_file():
+    for line in read_file(folder=INPUT_FOLDER):
         clean_line = line.strip()
-        print(f"  {clean_line}: {chain.train(clean_line)}")
-    print("  Training Finished")
+        print(f"{TAB}{clean_line}: {chain.train(clean_line)}")
+    print(f"{TAB}Training Finished")
 
 
 def train_chain_console(chain):
     print("Enter Training Data:")
     while chain.train(input("  ")):
         continue
-    print("  Training Finished")
+    print(f"{TAB}Training Finished")
 
 
 def generate_chain(chain):
     print("Generating...")
-    print("--------------------------------------------------------")
+    print_line()
     for i in range(10):
         print(chain.generate())
-    print("--------------------------------------------------------")
-
-
-# def generate_dump_chain(chain):
-#     f = load_file()
-#     print("Generating...")
-#     for i in range(100):
-#         f.write(chain.generate() + "\n")
+    print_line()
 
 
 def inspect_chain(chain):
     print("Markov Chain Inspection Menu")
-    print(", ".join([state.get_info() for state in chain.get_state_chain(input(" State Chain To Inspect: "))[1:]]))
+    print(", ".join([state.get_info() for state in
+                     chain.get_state_chain(input(f"{TAB}State Chain To Inspect: "))[1:]]))
 
 
 def print_chain(chain):
@@ -62,7 +59,7 @@ def print_chain(chain):
 
 
 def save_chain(chain):
-    pass
+    chain.save()
 
 
 def new_chain():
@@ -77,4 +74,6 @@ def new_chain():
 
 
 def load_chain():
-    pass
+    load_json = json.loads("".join(read_file(folder=SAVE_FOLDER, file_type="json")))
+    print(load_json)
+    chain_menu(MarkovChain(load_json))

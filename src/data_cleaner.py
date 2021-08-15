@@ -1,4 +1,4 @@
-from utils import menu, load_file, read_file, get_file_location
+from utils import menu, load_file, read_file, get_file_location, INPUT_FOLDER, write_file
 
 
 def main():
@@ -24,18 +24,20 @@ def every_odd_line():
 
 
 def every_x_lines(m, r):
-    file_location = get_file_location()
-    lines = read_file(file_location)
-    lines = "\n".join([lines[x].strip() for x in range(0, len(lines)) if x % m == r])
-    f = load_file(file_location, "w")
-    f.write(lines)
+    file_name = get_file_location()
+    lines = read_file(file_name, INPUT_FOLDER)
+    write_file(
+        "\n".join([lines[x].strip() for x in range(0, len(lines)) if x % m == r]),
+        file_name, INPUT_FOLDER
+    )
 
 
 def clean_file(action):
-    file_location = get_file_location()
-    lines = "\n".join(map(action, read_file(file_location)))
-    f = load_file(file_location, "w")
-    f.write(lines)
+    file_name = get_file_location()
+    write_file(
+        "\n".join(map(action, read_file(file_name, INPUT_FOLDER))),
+        file_name, INPUT_FOLDER
+    )
 
 
 if __name__ == "__main__":

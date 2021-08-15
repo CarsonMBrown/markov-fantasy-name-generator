@@ -6,7 +6,5 @@ __pycache__/
 *.pyc
 venv/*
 .idea/*
-database/*
-saves/*
-export/*
-theme/shapes/dragon/loading-gif/*
+input/*
+ouput/*
